@@ -15,33 +15,92 @@ typedef struct {
 
 } Player;
 
-Direction* scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) {
+int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WIDTH], Direction* neighbours) {
 
-  Direction* neighbours = (Direction*)malloc(4 * sizeof(Direction));
   printf("Player location: %d, %d\n", playerX, playerY);
 
-  printf("North = %d\n", labyrinth[playerY - 1][playerX]);
-  printf("East = %d\n", labyrinth[playerY][playerX + 1]);
-  printf("South = %d\n", labyrinth[playerY + 1][playerX]);
-  printf("West = %d\n", labyrinth[playerY][playerX - 1]);
+
+
+  int northNeighbour = -1;
+  int eastNeighbour = -1;
+  int southNeighbour = -1;
+  int westNeighbour = -1;
   
-  if (playerY != 0 && labyrinth[playerY - 1][playerX] == 1) {
-    neighbours[0] = NORTH;
+
+  if (playerY != 0) {
+  int northNeighbour = labyrinth[playerY - 1][playerX];
+  }
+  if (playerX != LAB_WIDTH - 1) {
+    eastNeighbour = labyrinth[playerY][playerX + 1];
+  }
+  if (playerY != LAB_HEIGHT - 1) {
+    southNeighbour = labyrinth[playerY + 1][playerX];
+  }
+  if (playerX != 0) {
+    westNeighbour = labyrinth[playerY][playerX - 1];
   }
 
-  if (playerX != LAB_WIDTH - 1 && labyrinth[playerY][playerX + 1] == 1) {
-    neighbours[1] = EAST;
+  printf("North = %d\n", northNeighbour);
+  printf("East = %d\n", eastNeighbour);
+  printf("South = %d\n", southNeighbour);
+  printf("West = %d\n", westNeighbour);
+
+  int neighbourCount = 0;
+  
+  if (playerY != 0 && northNeighbour > 0) {
+    if (northNeighbour == 2) {
+      Direction* finalNeighbour = (Direction*)malloc(sizeof(Direction));
+      finalNeighbour[0] = NORTH;
+      neighbours = finalNeighbour;
+      return 1;
+    }
+    neighbourCount++;
+    void* newNeighbours = realloc(neighbours, neighbourCount * sizeof(Direction));
+    neighbours = newNeighbours;
+    neighbours[neighbourCount - 1] = NORTH;
+
+  }
+
+  if (playerX != LAB_WIDTH - 1 && eastNeighbour > 0) {
+    if (eastNeighbour == 2) {
+      Direction* finalNeighbour = (Direction*)malloc(sizeof(Direction));
+      finalNeighbour[0] = EAST;
+      neighbours = finalNeighbour;
+      return 1;
+    }
+    neighbourCount++;
+    void* newNeighbours = realloc(neighbours, neighbourCount * sizeof(Direction));
+    neighbours = newNeighbours;
+    neighbours[neighbourCount - 1] = EAST;
   }
   
-  if (playerY != LAB_HEIGHT - 1 && labyrinth[playerY + 1][playerX] == 1) {
-    neighbours[2] = SOUTH;
+  if (playerY != LAB_HEIGHT - 1 && southNeighbour > 0) {
+    if (southNeighbour == 2) {
+      Direction* finalNeighbour = (Direction*)malloc(sizeof(Direction));
+      finalNeighbour[0] = SOUTH;
+      neighbours = finalNeighbour;
+      return 1;
+    }
+    neighbourCount++;
+    void* newNeighbours = realloc(neighbours, neighbourCount * sizeof(Direction));
+    neighbours = newNeighbours;
+    neighbours[neighbourCount - 1] = SOUTH;
   }
 
-  if (playerX != 0 && labyrinth[playerY][playerX - 1] == 1) {
-    neighbours[3] = WEST;
+  if (playerX != 0 && westNeighbour > 0) {
+    if (westNeighbour == 2) {
+      Direction* finalNeighbour = (Direction*)malloc(sizeof(Direction));
+      finalNeighbour[0] = WEST;
+      neighbours = finalNeighbour;
+      return 1;
+    }
+    neighbourCount++;
+    void* newNeighbours = realloc(neighbours, neighbourCount * sizeof(Direction));
+    neighbours = newNeighbours;
+    neighbours[neighbourCount - 1] = WEST;
   }
 
-  return neighbours;
+  return neighbourCount;
   
 }
 
@@ -54,14 +113,19 @@ int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]){
 
   visitedMask[*playerY][*playerX] = 1;
 
-  Direction* neighbours = scanForNeighbours(*playerX, *playerY, labyrinth);
+  if (labyrinth[*playerY][*playerX] == 2) {
+    return 1;
+  }
 
-  int size = 4;
-  printf("Amount of neighbours: %d\n\n", size);
-  for (int i = 0; i < size; i++) {
+  Direction* neighbours = (Direction*)malloc(sizeof(Direction));
+  int neighbourCount = scanForNeighbours(*playerX, *playerY, labyrinth, neighbours);
+
+  printf("Amount of neighbours: %d\n\n", neighbourCount);
+  for (int i = 0; i < neighbourCount; i++) {
     printf("Neighbours:");
     printf("%d\n", (int)neighbours[i]);
   }
+
 
   free(neighbours);
   return 0;
@@ -90,7 +154,13 @@ int main() {
   p1.location[1] = 0;
   p1.direction = SOUTH;
 
-  singlePathSearch(&p1, labyrinthMask);
+  int result = singlePathSearch(&p1, labyrinthMask);
+
+  if (result == 1) {
+    printf("Found a path!\n");
+  } else {
+    printf("Did not find a path.\n");
+  }
 
 
   return 0;
