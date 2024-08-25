@@ -104,8 +104,9 @@ int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WI
   
 }
 
+// TODO: Implement recursion to find path.
 int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]){
-
+  // NOTE: Works if and only if there exists precisely one path to the exit
   int visitedMask[LAB_HEIGHT][LAB_WIDTH] = {0};
 
   int *playerX = &player->location[0];
@@ -131,12 +132,16 @@ int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]){
   return 0;
 }
 
+// TODO: Implement.
 int BFS(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0; }
 
+// TODO: Implement.
 int DFS(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0; }
 
+// TODO: Implement.
 int DijkstraSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0; }
 
+// TODO: Implement.
 int AStarSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0; }
 
 
@@ -144,7 +149,7 @@ int AStarSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0
 int main() {
 
   int labyrinthMask[LAB_HEIGHT][LAB_WIDTH] = {{1, 1, 1, 1},
-			     {1, 0, 0, 1},
+			     {0, 0, 0, 1},
 			     {1, 1, 1, 1},
 			     {2, 0, 0, 0}};
 
