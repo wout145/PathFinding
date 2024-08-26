@@ -138,7 +138,6 @@ void updatePlayerPosition(Player *player, Direction direction) {
   }
 }
 
-// TODO: Implement recursion to find path.
 int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH], int visitedMask[LAB_HEIGHT][LAB_WIDTH]) {
   // NOTE: Works if and only if there exists precisely one path to the exit
 
