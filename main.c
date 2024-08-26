@@ -101,13 +101,46 @@ int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WI
   }
 
   return neighbourCount;
-  
+}
+
+int checkIfVisited(int playerX, int playerY, Direction neighbour, int visitedMask[LAB_HEIGHT][LAB_WIDTH]) {
+
+  if (neighbour == NORTH) {
+    int visited = visitedMask[playerY - 1][playerX];
+    return visited;
+  } else if (neighbour == EAST) {
+    int visited = visitedMask[playerY][playerX + 1];
+    return visited;
+  } else if (neighbour == SOUTH) {
+    int visited = visitedMask[playerY + 1][playerX];
+    return visited;
+  } else if (neighbour == WEST) {
+    int visited = visitedMask[playerY][playerX - 1];
+    return visited;
+  }
+
+  printf("Something went wrong in checkIfVisited method.\n");
+  return 1;
+}
+
+void updatePlayerPosition(Player *player, Direction direction) {
+  int playerX = player->location[0];
+  int playerY = player->location[1];
+
+  if (direction == NORTH) {
+    player->location[1] = playerY - 1;
+  } else if (direction == EAST) {
+    player->location[0] = playerX + 1;
+  } else if (direction == SOUTH) {
+    player->location[1] = playerY + 1;
+  } else if (direction == WEST) {
+    player->location[0] = playerX - 1;
+  }
 }
 
 // TODO: Implement recursion to find path.
-int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]){
+int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH], int visitedMask[LAB_HEIGHT][LAB_WIDTH]) {
   // NOTE: Works if and only if there exists precisely one path to the exit
-  int visitedMask[LAB_HEIGHT][LAB_WIDTH] = {0};
 
   int *playerX = &player->location[0];
   int *playerY = &player->location[1];
@@ -125,6 +158,29 @@ int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]){
   for (int i = 0; i < neighbourCount; i++) {
     printf("Neighbours:");
     printf("%d\n", (int)neighbours[i]);
+  }
+
+  // Assuming there is only 1 path forward.
+
+  // Retrieve the neighbour which hasn't been visited
+
+  Direction newPlayerDirection;
+  for (int i = 0; i < neighbourCount; i++) {
+    Direction neighbour = neighbours[i];
+    int visited = checkIfVisited(*playerX, *playerY, neighbour, visitedMask);
+    if (visited == 0) {
+      newPlayerDirection = neighbour;
+    }
+  }
+
+  // Update the player position to that neighbour.
+
+  updatePlayerPosition(player, newPlayerDirection);
+  
+  int result = singlePathSearch(player, labyrinth, visitedMask);
+  if (result == 1) {
+    free(neighbours);
+    return 1;
   }
 
 
@@ -159,12 +215,16 @@ int main() {
   p1.location[1] = 0;
   p1.direction = SOUTH;
 
-  int result = singlePathSearch(&p1, labyrinthMask);
+  int visitedMask[LAB_HEIGHT][LAB_WIDTH] = {0};
+  
+  int result = singlePathSearch(&p1, labyrinthMask, visitedMask);
 
   if (result == 1) {
     printf("Found a path!\n");
+    printf("Final player position: (%d, %d)\n", p1.location[0], p1.location[1]);
   } else {
     printf("Did not find a path.\n");
+    printf("Final player position: (%d, %d)\n", p1.location[0], p1.location[1]);
   }
 
 
