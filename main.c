@@ -58,7 +58,7 @@ int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WI
     neighbourCount++;
     void* newNeighbours = realloc(*neighbours, neighbourCount * sizeof(Direction));
     if (newNeighbours == NULL) {
-      printf("realloc failed when adding north neighbour in neighbourcheck");
+      printf("realloc failed when adding north neighbour in neighbourcheck\n");
       exit(1);
     }
     *neighbours = newNeighbours;
@@ -76,7 +76,7 @@ int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WI
     neighbourCount++;
     void* newNeighbours = realloc(*neighbours, neighbourCount * sizeof(Direction));
     if (newNeighbours == NULL) {
-      printf("realloc failed when adding east neighbour in neighbourcheck");
+      printf("realloc failed when adding east neighbour in neighbourcheck\n");
       exit(1);
     }
     *neighbours = newNeighbours;
@@ -94,7 +94,7 @@ int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WI
     neighbourCount++;
     void* newNeighbours = realloc(*neighbours, neighbourCount * sizeof(Direction));
     if (newNeighbours == NULL) {
-      printf("realloc failed when adding south neighbour in neighbourcheck");
+      printf("realloc failed when adding south neighbour in neighbourcheck\n");
       exit(1);
     }
     *neighbours = newNeighbours;
@@ -112,7 +112,7 @@ int scanForNeighbours(int playerX, int playerY, int labyrinth[LAB_HEIGHT][LAB_WI
     neighbourCount++;
     void* newNeighbours = realloc(*neighbours, neighbourCount * sizeof(Direction));
     if (newNeighbours == NULL) {
-      printf("realloc failed when adding west neighbour in neighbourcheck");
+      printf("realloc failed when adding west neighbour in neighbourcheck\n");
       exit(1);
     }
     *neighbours = newNeighbours;
@@ -158,11 +158,11 @@ void updatePlayerPosition(Player *player, Direction direction) {
   }
 }
 
-int singlePathSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH], int visitedMask[LAB_HEIGHT][LAB_WIDTH]) {
+int singlePathSearch(Player* player, int labyrinth[LAB_HEIGHT][LAB_WIDTH], int visitedMask[LAB_HEIGHT][LAB_WIDTH]) {
   // NOTE: Works if and only if there exists precisely one path to the exit
 
-  int *playerX = &player->location[0];
-  int *playerY = &player->location[1];
+  int* playerX = &player->location[0];
+  int* playerY = &player->location[1];
 
   visitedMask[*playerY][*playerX] = 1;
 
@@ -336,8 +336,64 @@ int BFS(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) {
   
 }
 
-// TODO: Implement.
-int DFS(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0; }
+int DFS(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH], int visitedMask[LAB_HEIGHT][LAB_WIDTH]) {
+
+  int* playerX = &player->location[0];
+  int* playerY = &player->location[1];
+
+  // Check if current player position is finish, return 1 if so. 
+  if (labyrinth[*playerY][*playerX] == 2) {
+    printf("Final player location: (%d, %d)\n", *playerX, *playerY);
+    return 1;
+  }
+  
+  visitedMask[*playerY][*playerX] = 1;
+
+  // Check neighbours at player position.
+  Direction* neighbours = NULL;
+  int neighbourCount = scanForNeighbours(player->location[0], player->location[1], labyrinth, &neighbours);
+  int nonVisitedNeighbourCount = 0;
+  // Save all the non-visited neighbours in an array.
+  int** nonVisitedNeighbours = (int**)malloc(neighbourCount * sizeof(int*));
+  if (nonVisitedNeighbours == NULL) {
+    perror("Failed to allocated memory for nonVistedNeighbours");
+    exit(EXIT_FAILURE);
+  }
+
+  for (int i = 0; i < neighbourCount; i++) {
+    int* currentNeighbour = (int*)malloc(coordinateSize * sizeof(int));
+    if (currentNeighbour == NULL) {
+      perror("Failed to allocate memory for nonVisitedNeighbours[i]");
+      exit(EXIT_FAILURE);
+    }
+    convertNeighbourDirectionToCoordinate(neighbours[i], player->location, currentNeighbour);
+    if (visitedMask[currentNeighbour[1]][currentNeighbour[0]] == 0) {
+      nonVisitedNeighbours[nonVisitedNeighbourCount] = currentNeighbour;
+      nonVisitedNeighbourCount++;
+    } else {
+      free(currentNeighbour);
+    }
+  }
+
+
+  // For all neighbours, call the function, if it returns 1 at some point, return 1.
+  int result = 0; 
+  for (int i = 0; i < neighbourCount; i++) {
+    *playerX = nonVisitedNeighbours[i][0];
+    *playerY = nonVisitedNeighbours[i][1];
+    result = DFS(player, labyrinth, visitedMask);
+    if (result == 1) {
+      return 1;
+    }
+  }
+  
+  for (int i = 0; i < neighbourCount; i++) {
+    free(nonVisitedNeighbours[i]);
+  }
+  free(nonVisitedNeighbours);
+  
+  return 0;
+}
 
 // TODO: Implement.
 int DijkstraSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0; }
@@ -350,9 +406,9 @@ int AStarSearch(Player *player, int labyrinth[LAB_HEIGHT][LAB_WIDTH]) { return 0
 int main() {
 
   int labyrinthMask[LAB_HEIGHT][LAB_WIDTH] = {{1, 1, 1, 0},
-			     {1, 0, 1, 0},
-			     {1, 1, 1, 0},
-			     {2, 0, 0, 0}};
+			     {1, 0, 1, 1},
+			     {1, 0, 0, 1},
+			     {2, 1, 1, 1}};
 
 
   Player p1;
@@ -362,14 +418,12 @@ int main() {
 
   int visitedMask[LAB_HEIGHT][LAB_WIDTH] = {0};
   
-  int result = BFS(&p1, labyrinthMask);
+  int result = DFS(&p1, labyrinthMask, visitedMask);
 
   if (result == 1) {
     printf("Found a path!\n");
-    printf("Final player position: (%d, %d)\n", p1.location[0], p1.location[1]);
   } else {
     printf("Did not find a path.\n");
-    printf("Final player position: (%d, %d)\n", p1.location[0], p1.location[1]);
   }
 
 
