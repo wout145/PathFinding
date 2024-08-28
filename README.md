@@ -6,7 +6,7 @@ See the list of algorythms below:
 
 - [x]  Single Path Search algorythm
 - [x]  Breadth First Search algorythm
-- [ ]  Depth First Search algorythm
+- [x]  Depth First Search algorythm
 - [ ]  Dijkstra's algorythm
 - [ ]  A* algorythm
 
